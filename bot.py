@@ -7,7 +7,6 @@ from aiogram.types import ReactionTypeEmoji
 from aiogram.filters import CommandStart, Command
 
 from dotenv import load_dotenv
-from aiogram.client.session.aiohttp import AiohttpSession
 from aiohttp import web
 
 # Загружаем переменные окружения из файла .env (для локального запуска)
@@ -17,23 +16,19 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MY_USER_ID = int(os.getenv("MY_USER_ID", 0))
 
-# Настройка прокси для бесплатных аккаунтов PythonAnywhere
-session = None
-if os.environ.get("PYTHONANYWHERE_SITE"):
-    session = AiohttpSession(proxy="http://proxy.server:3128")
-
-bot = Bot(token=BOT_TOKEN, session=session)
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# ID чата, куда будем писать сообщения (изначально пусто)
+# Настройки спама
 target_chat_id = None
+spam_text = "поля самый пушистый маленький рыжий"
 
 @dp.message(Command("start_spam"))
 async def cmd_start_spam(message: types.Message):
     global target_chat_id
     if message.from_user.id == MY_USER_ID:
         target_chat_id = message.chat.id
-        await message.answer("Принято! Теперь каждую минуту буду писать про Полю в этот чат.")
+        await message.answer(f"Принято! Теперь каждую минуту буду писать в этот чат:\n«{spam_text}»")
 
 @dp.message(Command("stop_spam"))
 async def cmd_stop_spam(message: types.Message):
@@ -41,6 +36,26 @@ async def cmd_stop_spam(message: types.Message):
     if message.from_user.id == MY_USER_ID:
         target_chat_id = None
         await message.answer("Спам остановлен.")
+
+@dp.message(Command("status"))
+async def cmd_status(message: types.Message):
+    if message.from_user.id == MY_USER_ID:
+        if target_chat_id:
+            await message.answer(f"Сейчас спамлю.\nЧат ID: {target_chat_id}\nТекст: {spam_text}")
+        else:
+            await message.answer("Сейчас спам выключен.")
+
+@dp.message(Command("set_spam"))
+async def cmd_set_spam(message: types.Message):
+    global spam_text
+    if message.from_user.id == MY_USER_ID:
+        text_content = message.text or message.caption or ""
+        new_text = text_content.replace("/set_spam", "").strip()
+        if new_text:
+            spam_text = new_text
+            await message.answer(f"Текст спама изменен на:\n«{spam_text}»")
+        else:
+            await message.answer("Напиши текст после команды, например:\n/set_spam Сегодня Поля не в духе")
 
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message):
@@ -52,7 +67,7 @@ async def react_to_message(message: types.Message):
     if message.from_user and message.from_user.id != MY_USER_ID:
         try:
             # Выбираем случайную реакцию
-            emoji_to_set = random.choice(["👎", "❤️‍🔥"])
+            emoji_to_set = random.choice(["👎", "❤️‍🔥", "🤡", "💩", "🤮", "🌭"])
             # Ставим выбранную реакцию
             await message.react([ReactionTypeEmoji(type="emoji", emoji=emoji_to_set)])
         except Exception as e:
@@ -80,7 +95,7 @@ async def send_periodic_message():
         await asyncio.sleep(60) # Ждем 60 секунд (1 минуту)
         if target_chat_id:
             try:
-                await bot.send_message(target_chat_id, "поля самый пушистый маленький рыжий")
+                await bot.send_message(target_chat_id, spam_text)
             except Exception as e:
                 logging.error(f"Не удалось отправить спам: {e}")
 
