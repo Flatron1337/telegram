@@ -4,7 +4,7 @@ import logging
 import random
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReactionTypeEmoji
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 
 from dotenv import load_dotenv
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -24,6 +24,23 @@ if os.environ.get("PYTHONANYWHERE_SITE"):
 
 bot = Bot(token=BOT_TOKEN, session=session)
 dp = Dispatcher()
+
+# ID чата, куда будем писать сообщения (изначально пусто)
+target_chat_id = None
+
+@dp.message(Command("start_spam"))
+async def cmd_start_spam(message: types.Message):
+    global target_chat_id
+    if message.from_user.id == MY_USER_ID:
+        target_chat_id = message.chat.id
+        await message.answer("Принято! Теперь каждую минуту буду писать про Полю в этот чат.")
+
+@dp.message(Command("stop_spam"))
+async def cmd_stop_spam(message: types.Message):
+    global target_chat_id
+    if message.from_user.id == MY_USER_ID:
+        target_chat_id = None
+        await message.answer("Спам остановлен.")
 
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message):
@@ -58,10 +75,22 @@ async def start_dummy_server():
     await site.start()
     print(f"Фейковый веб-сервер запущен на порту {port} (для обмана Render)")
 
+async def send_periodic_message():
+    while True:
+        await asyncio.sleep(60) # Ждем 60 секунд (1 минуту)
+        if target_chat_id:
+            try:
+                await bot.send_message(target_chat_id, "поля самый пушистый маленький рыжий")
+            except Exception as e:
+                logging.error(f"Не удалось отправить спам: {e}")
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     # Удаляем старые накопившиеся сообщения, чтобы бот не тормозил при запуске
     await bot.delete_webhook(drop_pending_updates=True)
+    
+    # Запускаем фоновую задачу для отправки сообщений каждую минуту
+    asyncio.create_task(send_periodic_message())
     
     # Запускаем наш фейковый сервер
     await start_dummy_server()
