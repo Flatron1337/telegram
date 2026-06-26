@@ -7,6 +7,7 @@ from aiogram.types import ReactionTypeEmoji
 from aiogram.filters import CommandStart
 
 from dotenv import load_dotenv
+from aiogram.client.session.aiohttp import AiohttpSession
 
 # Загружаем переменные окружения из файла .env (для локального запуска)
 load_dotenv()
@@ -15,7 +16,12 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MY_USER_ID = int(os.getenv("MY_USER_ID", 0))
 
-bot = Bot(token=BOT_TOKEN)
+# Настройка прокси для бесплатных аккаунтов PythonAnywhere
+session = None
+if os.environ.get("PYTHONANYWHERE_SITE"):
+    session = AiohttpSession(proxy="http://proxy.server:3128")
+
+bot = Bot(token=BOT_TOKEN, session=session)
 dp = Dispatcher()
 
 @dp.message(CommandStart())
