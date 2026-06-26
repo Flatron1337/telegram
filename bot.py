@@ -8,6 +8,7 @@ from aiogram.filters import CommandStart
 
 from dotenv import load_dotenv
 from aiogram.client.session.aiohttp import AiohttpSession
+from aiohttp import web
 
 # Загружаем переменные окружения из файла .env (для локального запуска)
 load_dotenv()
@@ -43,10 +44,28 @@ async def react_to_message(message: types.Message):
             else:
                 logging.error(f"Не удалось поставить реакцию: {e}")
 
+# Функции для фейкового веб-сервера
+async def handle_ping(request):
+    return web.Response(text="Bot is running!")
+
+async def start_dummy_server():
+    app = web.Application()
+    app.router.add_get('/', handle_ping)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 8000))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    print(f"Фейковый веб-сервер запущен на порту {port} (для обмана Render)")
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     # Удаляем старые накопившиеся сообщения, чтобы бот не тормозил при запуске
     await bot.delete_webhook(drop_pending_updates=True)
+    
+    # Запускаем наш фейковый сервер
+    await start_dummy_server()
+    
     # Запуск бота
     print("Бот запущен!")
     await dp.start_polling(bot)
