@@ -23,12 +23,16 @@ dp = Dispatcher()
 target_chat_id = None
 spam_text = "поля самый пушистый маленький рыжий"
 
+
 @dp.message(Command("start_spam"))
 async def cmd_start_spam(message: types.Message):
     global target_chat_id
     if message.from_user.id == MY_USER_ID:
         target_chat_id = message.chat.id
-        await message.answer(f"Принято! Теперь каждую минуту буду писать в этот чат:\n«{spam_text}»")
+        await message.answer(
+            f"Принято! Теперь каждую минуту буду писать в этот чат:\n«{spam_text}»"
+        )
+
 
 @dp.message(Command("stop_spam"))
 async def cmd_stop_spam(message: types.Message):
@@ -37,13 +41,17 @@ async def cmd_stop_spam(message: types.Message):
         target_chat_id = None
         await message.answer("Спам остановлен.")
 
+
 @dp.message(Command("status"))
 async def cmd_status(message: types.Message):
     if message.from_user.id == MY_USER_ID:
         if target_chat_id:
-            await message.answer(f"Сейчас спамлю.\nЧат ID: {target_chat_id}\nТекст: {spam_text}")
+            await message.answer(
+                f"Сейчас спамлю.\nЧат ID: {target_chat_id}\nТекст: {spam_text}"
+            )
         else:
             await message.answer("Сейчас спам выключен.")
+
 
 @dp.message(Command("set_spam"))
 async def cmd_set_spam(message: types.Message):
@@ -55,11 +63,17 @@ async def cmd_set_spam(message: types.Message):
             spam_text = new_text
             await message.answer(f"Текст спама изменен на:\n«{spam_text}»")
         else:
-            await message.answer("Напиши текст после команды, например:\n/set_spam Сегодня Поля не в духе")
+            await message.answer(
+                "Напиши текст после команды, например:\n/set_spam Сегодня Поля не в духе"
+            )
+
 
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message):
-    await message.answer("Привет! Я бот, который ставит дизлайки (👎) на все сообщения, кроме сообщений моего создателя.")
+    await message.answer(
+        "Привет! Я бот, который ставит дизлайки (👎) на все сообщения, кроме сообщений моего создателя."
+    )
+
 
 @dp.message()
 async def react_to_message(message: types.Message):
@@ -72,47 +86,52 @@ async def react_to_message(message: types.Message):
             await message.react([ReactionTypeEmoji(type="emoji", emoji=emoji_to_set)])
         except Exception as e:
             if "MESSAGE_ID_INVALID" in str(e):
-                pass # Это сервисное сообщение (например, "Пользователь зашел в группу"), на него нельзя поставить реакцию
+                pass  # Это сервисное сообщение (например, "Пользователь зашел в группу"), на него нельзя поставить реакцию
             else:
                 logging.error(f"Не удалось поставить реакцию: {e}")
+
 
 # Функции для фейкового веб-сервера
 async def handle_ping(request):
     return web.Response(text="Bot is running!")
 
+
 async def start_dummy_server():
     app = web.Application()
-    app.router.add_get('/', handle_ping)
+    app.router.add_get("/", handle_ping)
     runner = web.AppRunner(app)
     await runner.setup()
     port = int(os.environ.get("PORT", 8000))
-    site = web.TCPSite(runner, '0.0.0.0', port)
+    site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
     print(f"Фейковый веб-сервер запущен на порту {port} (для обмана Render)")
 
+
 async def send_periodic_message():
     while True:
-        await asyncio.sleep(60) # Ждем 60 секунд (1 минуту)
+        await asyncio.sleep(60)  # Ждем 60 секунд (1 минуту)
         if target_chat_id:
             try:
                 await bot.send_message(target_chat_id, spam_text)
             except Exception as e:
                 logging.error(f"Не удалось отправить спам: {e}")
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     # Удаляем старые накопившиеся сообщения, чтобы бот не тормозил при запуске
     await bot.delete_webhook(drop_pending_updates=True)
-    
+
     # Запускаем фоновую задачу для отправки сообщений каждую минуту
     asyncio.create_task(send_periodic_message())
-    
+
     # Запускаем наш фейковый сервер
     await start_dummy_server()
-    
+
     # Запуск бота
     print("Бот запущен!")
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
