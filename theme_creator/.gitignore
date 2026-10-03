@@ -18,3 +18,5 @@ build/
 .coverage
 htmlcov/
 output/
+*mkv
+*mp4
