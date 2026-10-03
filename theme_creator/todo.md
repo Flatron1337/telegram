@@ -11,6 +11,7 @@
 - [x] Фаза 7: Тестирование новых функций и контроль качества (Завершено · 100/100 aislop)
 - [x] Фаза 8: Поддержка Telegram iOS (.tgios-theme) и мультиплатформенный экспорт (Завершено · 100/100 aislop)
 - [x] Фаза 9: Telegram Mini App (Theme Studio) и функция прозрачности сообщений (Завершено · 100/100 aislop)
+- [x] Фаза 10: Деплой на Render.com (Production · Live & Healthy)
 
 ---
 
@@ -144,4 +145,20 @@
 - [x] Тестирование и контроль качества:
   - 35/35 тестов успешно пройдено (`tests/test_transparency.py`, `tests/test_server.py`)
   - 100/100 Healthy, 0 issues, 0 warnings (`npx aislop scan`)
+
+### Фаза 10: Деплой на Render.com (Production)
+- [x] Настройка поддержки Render окружения:
+  - Поддержка системной переменной `PORT` (через `AliasChoices("WEBAPP_PORT", "PORT")` в `bot/config.py`)
+  - Обновление `Dockerfile` с поддержкой `requirements.txt` и копированием `webapp/`
+  - Создание `render.yaml` Blueprint спецификации в корне репозитория
+- [x] Синхронизация с GitHub:
+  - Создание репозитория [`Flatron1337/telegram`](https://github.com/Flatron1337/telegram)
+  - Пуш ветки `main` с кодовой базой бота, тестами и Mini App
+- [x] Создание и запуск Web Service на Render:
+  - Создан сервис `telegram-theme-creator-bot` в workspace `Flatron's workspace` (Frankfurt)
+  - Автоматическая сборка Python 3.14 + установка зависимостей
+  - Запуск HTTP-сервера Theme Studio на порту `$PORT` (10000) и aiogram long-polling
+  - Пройдены проверки работоспособности `/health`
+  - Сервис в статусе **Live 🎉**: [https://telegram-theme-creator-bot.onrender.com](https://telegram-theme-creator-bot.onrender.com)
+
 
