@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: telegram-theme-creator-bot
+    runtime: python
+    repo: https://github.com/Flatron1337/telegram
+    plan: free
+    region: frankfurt
+    branch: main
+    rootDir: theme_creator
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m bot.main
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: WEBAPP_URL
+        value: https://telegram-theme-creator-bot.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: "1"
