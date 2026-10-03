@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Telegram Theme Studio · Редактор тем</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="studio-header">
+      <div class="brand">
+        <div class="brand-icon">🎨</div>
+        <div>
+          <h1>Theme Studio</h1>
+          <p class="subtitle">Интерактивный редактор тем с прозрачностью</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="modeToggle" class="mode-toggle" title="Переключить тему">
+          <span class="mode-icon">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Preset Chips -->
+    <section class="section presets-section">
+      <div class="section-title">Быстрые стили</div>
+      <div class="preset-scroll">
+        <button class="preset-chip active" data-preset="rem">🩵 Cyberpunk Rem</button>
+        <button class="preset-chip" data-preset="ram">🩷 Cyberpunk Ram</button>
+        <button class="preset-chip" data-preset="amoled">🖤 AMOLED Neon</button>
+        <button class="preset-chip" data-preset="sunset">🌅 Sunset Violet</button>
+        <button class="preset-chip" data-preset="emerald">🌲 Emerald Mint</button>
+      </div>
+    </section>
+
+    <!-- Live Telegram Chat Preview Mockup -->
+    <section class="section preview-section">
+      <div class="section-title">
+        <span>Живое превью чата</span>
+        <span class="live-indicator"><span class="pulse-dot"></span> Live</span>
+      </div>
+      <div class="chat-mockup-frame">
+        <!-- Chat Top Bar -->
+        <div class="mockup-topbar" id="mockupTopBar">
+          <div class="mockup-back">‹</div>
+          <div class="mockup-avatar" id="mockupAvatar">TG</div>
+          <div class="mockup-user-info">
+            <div class="mockup-name" id="mockupChatName">Theme Creator Bot</div>
+            <div class="mockup-status">в сети</div>
+          </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="mockup-chat-body" id="mockupChatBody">
+          <div class="mockup-date-badge">Сегодня</div>
+
+          <!-- Incoming Message Bubble -->
+          <div class="mockup-msg-row incoming">
+            <div class="mockup-bubble in" id="mockupInBubble">
+              <div class="bubble-author" id="mockupAuthor">Rem</div>
+              <div class="bubble-text">Оцени эту тему! Теперь пузыри сообщений поддерживают настоящую прозрачность 🫧</div>
+              <div class="bubble-time">13:37</div>
+            </div>
+          </div>
+
+          <!-- Outgoing Message Bubble -->
+          <div class="mockup-msg-row outgoing">
+            <div class="mockup-bubble out" id="mockupOutBubble">
+              <div class="bubble-text">Выглядит просто невероятно! Чистый киберпанк 🔥</div>
+              <div class="bubble-meta">
+                <span class="bubble-time">13:38</span>
+                <span class="bubble-check">✓✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Bottom Bar -->
+        <div class="mockup-inputbar" id="mockupInputBar">
+          <span class="inputbar-icon">📎</span>
+          <div class="mockup-input-placeholder">Сообщение...</div>
+          <span class="inputbar-icon mic">🎤</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Transparency Controls Panel -->
+    <section class="section card-panel glass-card">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <span class="panel-icon">🫧</span>
+          <div>
+            <h3>Эффект прозрачности (Glassmorphism)</h3>
+            <p class="panel-desc">Настройка уровня полупрозрачности пузырей сообщений</p>
+          </div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="transparencyToggle" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="slider-group" id="transparencySliders">
+        <!-- In-bubble Opacity -->
+        <div class="control-row">
+          <div class="control-label">
+            <span>Входящие сообщения</span>
+            <span class="value-badge" id="inAlphaVal">75%</span>
+          </div>
+          <input type="range" id="inAlphaSlider" min="15" max="100" value="75" class="glass-slider">
+        </div>
+
+        <!-- Out-bubble Opacity -->
+        <div class="control-row">
+          <div class="control-label">
+            <span>Исходящие сообщения</span>
+            <span class="value-badge" id="outAlphaVal">85%</span>
+          </div>
+          <input type="range" id="outAlphaSlider" min="15" max="100" value="85" class="glass-slider">
+        </div>
+
+        <!-- Backdrop Blur -->
+        <div class="control-row">
+          <div class="control-label">
+            <span>Размытие фона (Backdrop Blur)</span>
+            <span class="value-badge" id="blurVal">12px</span>
+          </div>
+          <input type="range" id="blurSlider" min="0" max="25" value="12" class="glass-slider">
+        </div>
+      </div>
+    </section>
+
+    <!-- Colors Customization Panel -->
+    <section class="section card-panel">
+      <h3>Палитра цветов</h3>
+      <div class="colors-grid">
+        <!-- Accent -->
+        <div class="color-item">
+          <label>Акцент</label>
+          <div class="color-picker-box">
+            <input type="color" id="accentColor" value="#00e5ff">
+            <input type="text" id="accentText" value="#00E5FF" maxlength="7">
+          </div>
+        </div>
+
+        <!-- Background -->
+        <div class="color-item">
+          <label>Фон чата</label>
+          <div class="color-picker-box">
+            <input type="color" id="bgColor" value="#0b0e14">
+            <input type="text" id="bgText" value="#0B0E14" maxlength="7">
+          </div>
+        </div>
+
+        <!-- Incoming Bubble -->
+        <div class="color-item">
+          <label>Входящие</label>
+          <div class="color-picker-box">
+            <input type="color" id="inBubbleColor" value="#1a2233">
+            <input type="text" id="inBubbleText" value="#1A2233" maxlength="7">
+          </div>
+        </div>
+
+        <!-- Outgoing Bubble -->
+        <div class="color-item">
+          <label>Исходящие</label>
+          <div class="color-picker-box">
+            <input type="color" id="outBubbleColor" value="#005577">
+            <input type="text" id="outBubbleText" value="#005577" maxlength="7">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Theme Name Input -->
+    <section class="section">
+      <div class="theme-name-group">
+        <label for="themeName">Название темы:</label>
+        <input type="text" id="themeName" value="Cyberpunk Glass Theme" maxlength="40">
+      </div>
+    </section>
+
+    <!-- Action Button -->
+    <footer class="action-footer">
+      <button id="applyBtn" class="primary-btn">
+        <span class="btn-icon">🚀</span>
+        <span>Применить тему в Telegram</span>
+      </button>
+      <p class="footer-hint">Будут сгенерированы темы для Telegram Desktop, Android и iOS</p>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast">Тема отправлена в чат!</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
