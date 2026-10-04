@@ -243,7 +243,7 @@ function showToast(text) {
 }
 
 // Apply Theme
-elements.applyBtn.addEventListener("click", () => {
+elements.applyBtn.addEventListener("click", async () => {
   const payload = {
     name: elements.themeName.value.trim() || "Custom Theme",
     is_dark: isDarkTheme,
@@ -256,17 +256,57 @@ elements.applyBtn.addEventListener("click", () => {
     has_transparency: hasTransparency,
   };
 
+  const originalText = elements.applyBtn.textContent;
+  elements.applyBtn.disabled = true;
+  elements.applyBtn.textContent = "⏳ Отправка темы в чат...";
+
+  const userId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+  const initData = tg ? tg.initData : "";
+
+  // 1. Send via Backend API (works for Inline buttons, Menu button, and direct links)
+  try {
+    const res = await fetch("/api/apply-theme", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        init_data: initData,
+        theme: payload,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === "ok") {
+        showToast("✨ Тема готова и отправлена вам в чат!");
+        setTimeout(() => {
+          if (tg && typeof tg.close === "function") {
+            tg.close();
+          }
+        }, 1200);
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("Backend apply-theme API error:", err);
+  }
+
+  // 2. Fallback to tg.sendData if opened via Reply Keyboard
   if (tg && typeof tg.sendData === "function") {
     try {
       tg.sendData(JSON.stringify(payload));
-      tg.close();
+      showToast("✨ Тема отправлена боту!");
+      setTimeout(() => {
+        tg.close();
+      }, 500);
       return;
     } catch (e) {
-      console.warn("tg.sendData failed, attempting fallback:", e);
+      console.warn("tg.sendData fallback error:", e);
     }
   }
 
-  showToast("✨ Тема сгенерирована! Данные скопированы.");
+  elements.applyBtn.disabled = false;
+  elements.applyBtn.textContent = originalText;
+  showToast("✨ Тема настроена! Вернитесь в чат с ботом.");
 });
 
 // Initialize on page load

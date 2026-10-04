@@ -49,6 +49,8 @@ async def main() -> None:
     web_runner = await start_web_server(
         host=settings.webapp_host,
         port=settings.webapp_port,
+        bot=bot,
+        bot_token=settings.bot_token.get_secret_value(),
     )
 
     logger.info("Bot successfully started in polling mode...")
